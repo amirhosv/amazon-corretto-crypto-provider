@@ -47,8 +47,7 @@ final class Loader {
     static final String PROPERTY_BASE = "com.amazon.corretto.crypto.provider.";
     private static final String TEMP_DIR_PREFIX = "amazonCorrettoCryptoProviderNativeLibraries.";
     private static final String JNI_LIBRARY_NAME = "amazonCorrettoCryptoProvider";
-    private static final String LIBCRYPTO_NAME = "crypto";
-    private static final String[] JAR_RESOURCES = {JNI_LIBRARY_NAME, LIBCRYPTO_NAME};
+    private static final String[] JAR_RESOURCES = {JNI_LIBRARY_NAME};
     private static final Pattern TEST_FILENAME_PATTERN = Pattern.compile("[-a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)*");
     private static final FileAttribute<Set<PosixFilePermission>> SELF_OWNER_FILE_PERMISSIONS =
             PosixFilePermissions.asFileAttribute(new HashSet<>(Arrays.asList(

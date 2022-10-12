@@ -28,6 +28,8 @@ else()
   set(Java_VERSION_MINOR ${JAVA_MINOR_VERSION})
 endif()
 
+set(OPENSSL_USE_STATIC_LIBS TRUE)
+
 find_package(JNI REQUIRED)
 include(FindOpenSSL)
 
@@ -86,8 +88,6 @@ string(REPLACE ":" ";" TEST_CLASSPATH_LIST "${TEST_CLASSPATH}")
 
 # Needed as we abuse some of the test compile macros to test shared lib links
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-# CMake's default RPath handling includes the full build directory path, which isn't needed. Turn it off.
-set(CMAKE_SKIP_RPATH TRUE)
 set(GENERATE_HASHERS ${CMAKE_CURRENT_SOURCE_DIR}/build-tools/bin/generate-java-hash-spi)
 set(GENERATED_JAVA_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated-java/com/amazon/corretto/crypto/provider)
 set(JNI_HEADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated-include)
@@ -266,19 +266,6 @@ add_library(
         ${JNI_HEADER_DIR}/generated-headers.h
 )
 
-# We MUST set ACCP's RPATH to "$ORIGIN" so that the runtime dynamic loader will look in the same directory as ACCP for
-# any shared library dependencies BEFORE looking for a system-installed depencencies (such as libcrypto). If RPath is
-# not set, the loader may attempt to load an incompatible system-installed libcrypto and cause runtime crashes.
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set(CMAKE_MACOSX_RPATH TRUE)
-    set(RPATH_ORIGIN "@loader_path")
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    set(RPATH_ORIGIN "\$ORIGIN")
-else()
-    message( FATAL_ERROR "Unsupported OS, need to determine OS-specific analog of linux rpath's $ORIGIN")
-endif()
-set_target_properties(amazonCorrettoCryptoProvider PROPERTIES LINK_FLAGS "-Wl,-rpath,${RPATH_ORIGIN}")
-
 add_custom_command(
     OUTPUT ${ACCP_JAR_SOURCE}
     COMMAND ${Java_JAR_EXECUTABLE} cf ${ACCP_JAR_SOURCE} -C ${CMAKE_CURRENT_SOURCE_DIR}/src .
@@ -294,7 +281,6 @@ if(ENABLE_NATIVE_TEST_HOOKS)
   add_executable(test_keyutils EXCLUDE_FROM_ALL
         csrc/test_keyutils.cpp
     )
-    set_target_properties(test_keyutils PROPERTIES LINK_FLAGS "-Wl,-rpath,${RPATH_ORIGIN}")
     target_link_libraries(test_keyutils ${OPENSSL_CRYPTO_LIBRARY})
     target_link_libraries(test_keyutils amazonCorrettoCryptoProvider)
 endif()
@@ -731,7 +717,7 @@ add_custom_target(check-install-via-properties-with-debug
     DEPENDS accp-jar tests-jar)
 
 add_custom_target(check
-    DEPENDS check-recursive-init check-install-via-properties check-install-via-properties-with-debug check-junit check-junit-SecurityManager check-external-lib check-libaccp-rpath)
+    DEPENDS check-recursive-init check-install-via-properties check-install-via-properties-with-debug check-junit check-junit-SecurityManager check-external-lib)
 
 add_custom_target(checkstyle
     WORKING_DIRECTORY ${ORIG_SRCROOT}
@@ -845,34 +831,6 @@ add_custom_target(check-dieharder-threads
 
     DEPENDS run-dieharder-libcrypto-rng-threads run-dieharder-libcrypto-rng-threads-tail)
 endif() # End of Dieharder targets
-
-# Add a target to assert that the libaccp shared object's rpath meets 2 conditions:
-#   1. rpath contains only a single entry
-#   2. that entry is set to $ORIGIN on linux or @loader_path on mac
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    add_custom_target(check-libaccp-rpath
-        COMMAND otool -l $<TARGET_FILE:amazonCorrettoCryptoProvider>
-            | grep 'cmd LC_RPATH'
-            | wc -l
-            | tr -d '[:blank:]'
-            | xargs test 1 -eq
-        COMMAND otool -l $<TARGET_FILE:amazonCorrettoCryptoProvider>
-            | grep -A2 'cmd LC_RPATH'
-            | tail -1
-            | grep '@loader_path'
-        )
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    add_custom_target(check-libaccp-rpath
-        COMMAND objdump -x $<TARGET_FILE:amazonCorrettoCryptoProvider>
-            | grep -E 'RPATH|RUNPATH'   # RPATH on AL, RUNPATH on Ubuntu
-            | grep -v ':'
-        COMMAND objdump -x $<TARGET_FILE:amazonCorrettoCryptoProvider>
-            | grep -E 'RPATH|RUNPATH'   # RPATH on AL, RUNPATH on Ubuntu
-            | grep -E "\$ORIGIN"
-        )
-else()
-    message( FATAL_ERROR "Unsupported OS, need to validate OS-specific rpath $ORIGIN")
-endif()
 
 # Do this at the end, after we finish all our feature tests, or it'll be missing flags
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/csrc/config.h.in ${JNI_HEADER_DIR}/config.h)
