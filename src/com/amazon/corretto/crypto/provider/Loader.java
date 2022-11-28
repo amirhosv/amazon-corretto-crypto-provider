@@ -412,9 +412,6 @@ final class Loader {
      */
     private static synchronized Path createPrivateTmpDir(final String prefix) throws IOException {
         final Path systemTempDir = Paths.get(System.getProperty("java.io.tmpdir"));
-        if (!Files.isDirectory(systemTempDir)) {
-            throw new AssertionError("java.io.tmpdir is not valid: " + systemTempDir);
-        }
 
         final int RETRY_LIMIT = 10;
         int attempt = 0;
@@ -436,7 +433,7 @@ final class Loader {
 
                 final Path privateDirFullPath = systemTempDir.resolve(privateTempDir.toString());
 
-                final Path result = Files.createDirectory(privateDirFullPath, SELF_OWNER_FILE_PERMISSIONS);
+                final Path result = Files.createDirectories(privateDirFullPath, SELF_OWNER_FILE_PERMISSIONS);
                 if (DebugFlag.VERBOSELOGS.isEnabled()) {
                     LOG.log(Level.FINE, "Created temporary library directory");
                 }
