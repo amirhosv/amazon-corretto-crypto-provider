@@ -291,12 +291,9 @@ add_custom_command(
 add_custom_target(accp-jar-source DEPENDS ${ACCP_JAR_SOURCE})
 
 if(ENABLE_NATIVE_TEST_HOOKS)
-  add_executable(test_keyutils EXCLUDE_FROM_ALL
-        csrc/test_keyutils.cpp
-    )
+    add_executable(test_keyutils EXCLUDE_FROM_ALL  csrc/test_keyutils.cpp)
     set_target_properties(test_keyutils PROPERTIES LINK_FLAGS "-Wl,-rpath,${RPATH_ORIGIN}")
-    target_link_libraries(test_keyutils ${OPENSSL_CRYPTO_LIBRARY})
-    target_link_libraries(test_keyutils amazonCorrettoCryptoProvider)
+    target_link_libraries(test_keyutils amazonCorrettoCryptoProvider ${OPENSSL_CRYPTO_LIBRARY})
 endif()
 
 #### Start of feature tests
@@ -477,6 +474,10 @@ CHECK_LINKER_FLAG_SUPPORT(USE_NOEXECSTACK "-Wl,-z -Wl,noexecstack")
 # libcrypto.so that is extracted into a temp directory at startup is loaded *before* LD_LIBRARY_PATH is checked.
 CHECK_LINKER_FLAG_SUPPORT(USE_DISABLE_NEW_DTAGS "-Wl,--disable-new-dtags")
 
+# Some old versions of gcc do not support these flags
+CHECK_ENABLE_CXX_FLAG(CXX_STL_STATIC_LINK "-static-libstdc++")
+CHECK_ENABLE_CXX_FLAG(C_STL_STATIC_LINK "-static-libgcc")
+
 ### CXX flag tests
 
 CHECK_ENABLE_CXX_FLAG(CXX_FLAG_WALL -Wall)
@@ -533,9 +534,12 @@ target_link_libraries(amazonCorrettoCryptoProvider ${PROBED_LINKED_FLAGS})
 # obsolete system libraries on older platforms. These options don't apply to
 # MacOS/Darwin because its gcc is actually an alias to clang, which does not
 # fully support them.
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-   target_link_libraries(amazonCorrettoCryptoProvider -static-libstdc++)
-   target_link_libraries(amazonCorrettoCryptoProvider -static-libgcc)
+if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CXX_STL_STATIC_LINK AND C_STL_STATIC_LINK)
+    message(STATUS "Staticly linking C/C++ standard libraries")
+    target_link_libraries(amazonCorrettoCryptoProvider -static-libstdc++)
+    target_link_libraries(amazonCorrettoCryptoProvider -static-libgcc)
+else()
+    message(STATUS "Dynamically linking C/C++ standard libraries")
 endif()
 
 # Add pthread support
