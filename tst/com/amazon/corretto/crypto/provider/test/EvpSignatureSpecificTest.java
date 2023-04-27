@@ -546,6 +546,7 @@ public final class EvpSignatureSpecificTest {
 
   @Test
   void testRsaPSSInitSmallKeyAfterSetParameterLargeSaltThrows() throws Exception {
+    if (TestUtil.isFips()) return;
     final int minimallySecureKeyLen = 2048;
     final int smallKeySize = 2048 / 4;
     final Signature signer = Signature.getInstance("RSASSA-PSS", NATIVE_PROVIDER);

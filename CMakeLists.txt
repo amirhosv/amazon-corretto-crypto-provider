@@ -604,6 +604,7 @@ if(FIPS)
     # ACCP's default behavior in FIPS mode is to not register a SecureRandom implementation.
     # However, we explicitly register it here to ensure its coverage under test.
     set(REGISTER_RNG_PROPERTY "-Dcom.amazon.corretto.crypto.provider.registerSecureRandom=true")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DACCP_FIPS_BUILD")
 else()
     set(TEST_FIPS_PROPERTY "-DFIPS=false")
 endif()

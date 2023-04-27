@@ -29,11 +29,18 @@ JNIEXPORT jlong JNICALL Java_com_amazon_corretto_crypto_provider_RsaGen_generate
         BigNumObj bne;
         jarr2bn(env, pubExp, bne);
 
-        if (1 != RSA_generate_key_ex(r, bits, bne, NULL))
-        {
+        if (1 != RSA_generate_key_ex(r, bits, bne, NULL)) {
             throw_openssl("Unable to generate key");
         }
 
+#ifdef ACCP_FIPS_BUILD
+        // Since RSA_generate_key_fips doesn't allow bit lengths greater than 4096 and
+        // public exponents othat than F4, we explicity check FIPS related checks on the
+        // generated key.
+        if (RSA_check_fips(r) != 1) {
+            throw_openssl("RSA_check_fips failed");
+        }
+#endif
         if (checkConsistency && RSA_check_key(r) != 1)
         {
             throw_openssl("Key failed consistency check");
