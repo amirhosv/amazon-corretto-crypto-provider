@@ -40,6 +40,7 @@ Cipher algorithms:
 * AES_128/GCM/NoPadding
 * AES_256/GCM/NoPadding
 * AES/KWP/NoPadding
+* AES/XTS/NoPadding
 * RSA/ECB/NoPadding
 * RSA/ECB/PKCS1Padding
 * RSA/ECB/OAEPPadding
@@ -64,12 +65,21 @@ Signature algorithms:
 * SHA512withECDSAinP1363Format
 * RSASSA-PSS
 
-KeyPairGenerator algorithms:
+KeyPairGenerator:
 * EC
 * RSA
 
+KeyGenerator:
+* AES
+
 KeyAgreement:
 * ECDH
+
+SecretKeyFactory:
+* HkdfWithHmacSHA1
+* HkdfWithHmacSHA256
+* HkdfWithHmacSHA384
+* HkdfWithHmacSHA512
 
 SecureRandom algorithms:
 * ACCP's SecureRandom uses AWS-LC's DRBG implementation, which is described [here](https://github.com/awslabs/aws-lc/blob/main/third_party/jitterentropy/README.md) and [here](https://github.com/awslabs/aws-lc/blob/725625435158150ef21e0a4dab6fa3aca1ef2d2c/crypto/fipsmodule/rand/rand.c#L36-L60).
@@ -78,6 +88,21 @@ KeyFactory algorithms:
 * EC
 * RSA
 * ACCP's SecureRandom uses AWS-LC's DRBG implementation.
+
+# Notes on ACCP-FIPS
+ACCP-FIPS is a variation of ACCP which is uses AWS-LC built in FIPS-mode.
+AWS-LC is undergoing FIPS validation testing by an accredited lab and,
+upon completion, will be submitted to NIST for certification.
+This process can take a long time, so we provide ACCP-FIPS for
+experimentation purposes in the interim.
+
+Version 2.3.0 is the first release of ACCP-FIPS. The Maven coordinates for
+ACCP-FIPS is the same as ACCP with one difference that ACCP-FIPS's
+artifact ID is `AmazonCorrettoCryptoProvider-FIPS`.
+
+Notable differences between ACCP and ACCP-FIPS:
+* In FIPS-mode, RSA keys are limited to 2048, 3072, or 4096 bits in size with public exponent F4.
+* ACCP-FIPS does not register SecureRandom by default. [A system property](https://github.com/corretto/amazon-corretto-crypto-provider#other-system-properties) is available to register SecureRandom from AWS-LC if needed.
 
 # Compatibility & Requirements
 ACCP has the following requirements:
@@ -114,6 +139,8 @@ For more information, please see [VERSIONING.rst](https://github.com/corretto/am
   <classifier>linux-x86_64</classifier>
 </dependency>
 ```
+
+The artifactId for FIPS builds is `AmazonCorrettoCryptoProvider-FIPS`.
 
 The classifier attribute could be set to `linux-aarch_64` to use ACCP on Linux ARM64 platforms.
 

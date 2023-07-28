@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.3.0
+
+### Overview
+
+Starting from this version, build artifacts for ACCP-FIPS are also released for
+experimental purposes. This version of ACCP-FIPS uses AWS-LC commit ID
+`993c6ff33a2d709ddc25d1557cd96261217bf1fd`.
+
+### Minor changes
+* Support HKDF [PR 310, 312]
+
 ## 2.2.0
 
 ### Minor changes

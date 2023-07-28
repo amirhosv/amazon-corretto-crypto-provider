@@ -15,7 +15,7 @@ plugins {
 }
 
 group = 'software.amazon.cryptools'
-version = '2.2.0'
+version = '2.3.0'
 ext.isFips = Boolean.getBoolean('FIPS')
 ext.isLegacyBuild = Boolean.getBoolean('LEGACY_BUILD')
 
@@ -23,6 +23,26 @@ ext.lcovIgnore = System.properties['LCOV_IGNORE']
 if (ext.lcovIgnore == null) {
     ext.lcovIgnore = 'source'
 }
+
+def getDescriptionForPom(isFips) {
+    if (!isFips) {
+        return [
+            'The Amazon Corretto Crypto Provider (ACCP) is a collection of',
+            'high-performance cryptographic implementations exposed via the',
+            'standard JCA/JCE interfaces.'
+        ].join(" ")
+    }
+
+    return [
+        'The Amazon Corretto Crypto Provider FIPS (ACCP-FIPS) is a collection',
+        'of high-performance cryptographic implementations exposed via the',
+        'standard JCA/JCE interfaces. ACCP-FIPS uses AWS-LC built in FIPS mode',
+        'and is provided for experimental purposes only.'
+    ].join(" ")
+
+}
+
+println getDescriptionForPom(ext.isFips)
 
 jmh {
     //includes = ['AesXts'] // uncomment if you need to run specific benchmarks only
@@ -660,6 +680,7 @@ task fakePublish {
 
 }
 
+
 if (project.hasProperty('mavenUser') && project.hasProperty('jcecertAlias')) {
     publishing {
         publications {
@@ -684,7 +705,7 @@ if (project.hasProperty('mavenUser') && project.hasProperty('jcecertAlias')) {
 
                 pom {
                     name = pomName
-                    description = 'The Amazon Corretto Crypto Provider (ACCP) is a collection of high-performance cryptographic implementations exposed via the standard JCA/JCE interfaces.'
+                    description = getDescriptionForPom(isFips)
                     url = 'https://github.com/corretto/amazon-corretto-crypto-provider'
                     licenses {
                         license {
