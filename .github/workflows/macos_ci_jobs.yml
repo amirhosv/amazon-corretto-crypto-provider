@@ -135,9 +135,9 @@ jobs:
         ./tests/ci/run_accp_basic_tests.sh --lcov-ignore inconsistent
         ./tests/ci/run_accp_test_integration.sh
   # JDK 8 FIPS job.
-  macOS8Fips:
-    name: JDK8FIPS
-    runs-on: macos-latest
+  macOS8Arm:
+    name: JDK8ARM
+    runs-on: macos-latest-xlarge
     steps:
     - uses: actions/checkout@v3
       with:
@@ -183,9 +183,9 @@ jobs:
         ./tests/ci/run_accp_basic_tests.sh --fips --lcov-ignore inconsistent
         ./tests/ci/run_accp_test_integration.sh --fips
   # JDK 11 FIPS job.
-  macOS11Fips:
-    name: JDK11FIPS
-    runs-on: macos-latest
+  macOS11Arm:
+    name: JDK11ARM
+    runs-on: macos-latest-xlarge
     steps:
     - uses: actions/checkout@v3
       with:
@@ -220,9 +220,9 @@ jobs:
         ./tests/ci/run_accp_basic_tests.sh --fips --lcov-ignore inconsistent
         ./tests/ci/run_accp_test_integration.sh --fips
   # JDK 17 FIPS job.
-  macOS17Fips:
-    name: JDK17FIPS
-    runs-on: macos-latest
+  macOS17Arm:
+    name: JDK17ARM
+    runs-on: macos-latest-xlarge
     steps:
     - uses: actions/checkout@v3
       with:
