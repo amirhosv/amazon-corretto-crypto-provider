@@ -822,12 +822,8 @@ set(check_targets check-recursive-init
     check-external-lib
     check-junit-AesLazy
     check-junit-AesEager
-    check-junit-DifferentTempDir)
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  set(check_targets ${check_targets} check-with-jni-flag)
-endif()
-# For MacOS, check-with-jni-flag is not added due to failures in java.net.Inet6AddressImpl.lookupAllHostAddr: https://bugs.openjdk.org/browse/JDK-8205076
+    check-junit-DifferentTempDir
+    check-with-jni-flag)
 
 add_custom_target(check DEPENDS ${check_targets})
 
